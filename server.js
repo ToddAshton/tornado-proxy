@@ -32,11 +32,10 @@ app.get('/api/canada-alerts', async (req, res) => {
   }
 });
 
-// Fire Alerts from FIRMS GeoJSON API (updated endpoint)
+// Fire Alerts - Using corrected FIRMS GeoJSON endpoint
 app.get('/api/fires', async (req, res) => {
   try {
-    const url = 'https://firms.modaps.eosdis.nasa.gov/data/active_fire/c6.1/geojson/MODIS_C6_1_USA_contiguous_and_Hawaii_24h.geojson';
-    const response = await fetch(url);
+    const response = await fetch('https://firms.modaps.eosdis.nasa.gov/geojson/c6.1/USA_contiguous_and_Hawaii_24h.geojson');
     const data = await response.json();
     res.json(data);
   } catch (error) {
