@@ -1,6 +1,8 @@
+// server.js
 const express = require('express');
 const fetch = require('node-fetch');
 const cors = require('cors');
+require('dotenv').config(); // Optional if running locally with a .env file
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -31,30 +33,33 @@ app.get('/api/canada-alerts', async (req, res) => {
   }
 });
 
-// Fire Alerts - FIRMS authenticated API with token
+// Fire Alerts from NASA FIRMS with Earthdata Token
 app.get('/api/fires', async (req, res) => {
   const token = process.env.EARTHDATA_TOKEN;
   if (!token) {
-    return res.status(500).json({ error: "Missing EARTHDATA_TOKEN environment variable" });
+    return res.status(500).json({ error: 'Missing EARTHDATA_TOKEN environment variable' });
   }
 
+  const fireUrl = `https://firms.modaps.eosdis.nasa.gov/api/area/c6.1/geojson/MODIS_C6_1_USA_contiguous_and_Hawaii_24h.geojson?token=${token}`;
+
   try {
-    const fireUrl = `https://firms.modaps.eosdis.nasa.gov/api/country/c6.1/geojson/MODIS_USA_contiguous_and_Hawaii_24h.geojson?token=${token}`;
     const response = await fetch(fireUrl);
-    if (!response.ok) {
+    const contentType = response.headers.get('content-type');
+
+    if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(`FIRMS API error: ${text}`);
+      console.error('FIRMS API error:', text);
+      return res.status(500).json({ error: 'FIRMS API returned non-JSON', response: text });
     }
+
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.error('Error fetching fire data:', error.message);
+    console.error('Error fetching fire data:', error);
     res.status(500).json({ error: 'Failed to fetch fire data' });
   }
 });
 
-
-// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
