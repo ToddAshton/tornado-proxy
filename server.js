@@ -2,9 +2,8 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const cors = require('cors');
-require('dotenv').config(); // Optional if running locally with a .env file
-
 const app = express();
+
 const PORT = process.env.PORT || 10000;
 
 app.use(cors());
