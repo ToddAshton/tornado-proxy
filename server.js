@@ -31,24 +31,20 @@ app.get('/api/canada-alerts', async (req, res) => {
   }
 });
 
-// Fire Alerts - Using FIRMS GeoJSON with Bearer Token
+// Fire Alerts - FIRMS authenticated API with token
 app.get('/api/fires', async (req, res) => {
   const token = process.env.EARTHDATA_TOKEN;
   if (!token) {
-    return res.status(500).json({ error: 'Missing EARTHDATA_TOKEN environment variable' });
+    return res.status(500).json({ error: "Missing EARTHDATA_TOKEN environment variable" });
   }
 
   try {
-    const response = await fetch('https://firms.modaps.eosdis.nasa.gov/data/active_fire/c6.1/geojson/MODIS_C6_1_USA_contiguous_and_Hawaii_24h.geojson', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    const fireUrl = `https://firms.modaps.eosdis.nasa.gov/api/country/c6.1/geojson/MODIS_USA_contiguous_and_Hawaii_24h.geojson?token=${token}`;
+    const response = await fetch(fireUrl);
     if (!response.ok) {
-      throw new Error(`FIRMS API error: ${response.statusText}`);
+      const text = await response.text();
+      throw new Error(`FIRMS API error: ${text}`);
     }
-
     const data = await response.json();
     res.json(data);
   } catch (error) {
@@ -56,6 +52,7 @@ app.get('/api/fires', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch fire data' });
   }
 });
+
 
 // Start server
 app.listen(PORT, () => {
